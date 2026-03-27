@@ -10,6 +10,6 @@ public class DailyNoteRequest {
     private LocalDate recordDate;
     private Integer rate;
     private String noteText;
-    private Set<Long> tagIds; // Chỉ gửi ID của các tag (emotions, weather...)
+    private Set<Long> tagIds;
 }
 

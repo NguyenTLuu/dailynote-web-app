@@ -12,7 +12,6 @@ import lombok.*;
 @Builder
 public class User {
 
-    // Khai báo Enum chức vụ ngay trong này cho gọn
     public enum Role {
         USER, ADMIN
     }
@@ -30,7 +29,6 @@ public class User {
     @Column(nullable = true)
     private String password;
 
-    // Thêm trường role
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER; // Mặc định ai đăng ký cũng là dân thường (USER)

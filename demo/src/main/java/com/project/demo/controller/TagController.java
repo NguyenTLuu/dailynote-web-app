@@ -17,23 +17,18 @@ public class TagController {
 
     private final TagRepository tagRepository;
 
-    /**
-     * LẤY DANH SÁCH TẤT CẢ CÁC ICON (TAGS)
-     * GET /api/tags
-     */
     @GetMapping
     public ResponseEntity<List<Tag>> getAllTags() {
         return ResponseEntity.ok(tagRepository.findAll());
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')") // Phép thuật chặn cửa những ai không phải ADMIN
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Tag> createTag(@RequestBody TagRequest request) {
 
-        // Không cần check Category, vì Frontend gửi lên Category mới thì DB sẽ tự lưu thành nhóm mới luôn
         Tag newTag = new Tag();
         newTag.setName(request.getName());
-        newTag.setCategory(request.getCategory().toUpperCase()); // Viết hoa cho đồng bộ chuẩn
+        newTag.setCategory(request.getCategory().toUpperCase());
         newTag.setEmoji(request.getEmoji());
 
         Tag savedTag = tagRepository.save(newTag);
@@ -41,29 +36,23 @@ public class TagController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // Vẫn giữ bùa bảo vệ này
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Tag> updateTag(
             @PathVariable Long id,
             @RequestBody TagRequest request) {
 
-        // 1. Tìm xem Tag có tồn tại trong Database không
         Tag existingTag = tagRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Tag với ID này"));
 
-        // 2. Cập nhật các trường dữ liệu
         existingTag.setName(request.getName());
-        existingTag.setCategory(request.getCategory().toUpperCase()); // Giữ category luôn viết hoa
+        existingTag.setCategory(request.getCategory().toUpperCase());
         existingTag.setEmoji(request.getEmoji());
 
-        // 3. Lưu lại vào Database
         Tag updatedTag = tagRepository.save(existingTag);
         return ResponseEntity.ok(updatedTag);
     }
 
-    /**
-     * XOÁ TAG
-     * DELETE /api/tags/{id}
-     */
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
@@ -71,7 +60,6 @@ public class TagController {
             tagRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            // Lỗi foreign key do Tag đang được nhắc đến trong bài viết
             throw new IllegalArgumentException("Không thể xoá Tag này vì nó đang được dùng trong các ghi chú cũ!");
         }
     }

@@ -26,10 +26,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder; // Dùng để mã hóa mật khẩu
     private final JwtService jwtService;
 
-    @Value("${google.client.id}") // Khai báo cái này trong application.properties sau
+    @Value("${google.client.id}")
     private String googleClientId;
 
-    // 1. ĐĂNG KÝ TRUYỀN THỐNG
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email đã được sử dụng!");
@@ -39,7 +38,6 @@ public class AuthService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa Pass
-        // user.setAuthProvider("LOCAL"); // Nếu bạn có cột này trong Entity User
 
         userRepository.save(user);
 
@@ -52,7 +50,6 @@ public class AuthService {
                 .build();
     }
 
-    // 2. ĐĂNG NHẬP TRUYỀN THỐNG
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Email hoặc mật khẩu không đúng"));
@@ -70,7 +67,6 @@ public class AuthService {
                 .build();
     }
 
-    // 3. ĐĂNG NHẬP / ĐĂNG KÝ BẰNG GOOGLE
     public AuthResponse googleLogin(GoogleLoginRequest request) {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
@@ -83,18 +79,15 @@ public class AuthService {
                 String email = payload.getEmail();
                 String name = (String) payload.get("name");
 
-                // Kiểm tra xem user này đã có trong DB chưa
                 Optional<User> userOptional = userRepository.findByEmail(email);
                 User user;
 
                 if (userOptional.isPresent()) {
-                    user = userOptional.get(); // Đã có -> Đăng nhập
+                    user = userOptional.get();
                 } else {
-                    // Chưa có -> Tự động tạo tài khoản mới (Đăng ký)
                     user = new User();
                     user.setEmail(email);
                     user.setUsername(name);
-                    // user.setAuthProvider("GOOGLE");
                     userRepository.save(user);
                 }
 

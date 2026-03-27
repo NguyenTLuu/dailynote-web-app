@@ -10,7 +10,5 @@ public class CalendarNoteResponse {
     private LocalDate recordDate;
     private Integer rate;
 
-    // Chỉ trả về một mảng chứa các biểu tượng (vd: ["😄", "☀️", "🎮"])
-    // để Next.js render thẳng lên ô lịch cho nhẹ.
     private List<String> emojis;
 }

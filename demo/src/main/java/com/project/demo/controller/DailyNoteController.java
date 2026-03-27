@@ -21,10 +21,7 @@ public class DailyNoteController {
 
     private final DailyNoteService dailyNoteService;
 
-    /**
-     * TẠO MỚI NHẬT KÝ
-     * POST /api/notes
-     */
+
     @PostMapping
     public ResponseEntity<DailyNoteResponse> createNote(
             @AuthenticationPrincipal Long userId, // Magic happens here! Spring tự động lấy userId từ JWT
@@ -34,10 +31,7 @@ public class DailyNoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * CẬP NHẬT NHẬT KÝ (EDIT)
-     * PUT /api/notes/{noteId}
-     */
+
     @PutMapping("/{noteId}")
     public ResponseEntity<DailyNoteResponse> updateNote(
             @AuthenticationPrincipal Long userId,
@@ -48,10 +42,7 @@ public class DailyNoteController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * XEM CHI TIẾT 1 NGÀY NHẬT KÝ
-     * GET /api/notes/{noteId}
-     */
+
     @GetMapping("/{noteId}")
     public ResponseEntity<DailyNoteResponse> getNoteById(
             @AuthenticationPrincipal Long userId,
@@ -61,10 +52,7 @@ public class DailyNoteController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * LẤY DỮ LIỆU ĐỂ VẼ LỊCH (CALENDAR VIEW)
-     * GET /api/notes/calendar?year=2026&month=3
-     */
+
     @GetMapping("/calendar")
     public ResponseEntity<List<CalendarNoteResponse>> getCalendarNotes(
             @AuthenticationPrincipal Long userId,
@@ -75,10 +63,7 @@ public class DailyNoteController {
         return ResponseEntity.ok(responses);
     }
 
-    /**
-     * LẤY DỮ LIỆU ĐỂ VẼ BIỂU ĐỒ THỐNG KÊ (SUMMARY)
-     * GET /api/notes/summary?year=2026&month=3
-     */
+
     @GetMapping("/summary")
     public ResponseEntity<MonthlySummaryResponse> getMonthlySummary(
             @AuthenticationPrincipal Long userId,

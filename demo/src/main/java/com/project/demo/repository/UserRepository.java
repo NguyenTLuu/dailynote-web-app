@@ -9,10 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // Spring Data JPA tự động dịch tên hàm này thành:
-    // SELECT * FROM users WHERE email = ?
     Optional<User> findByEmail(String email);
 
-    // Kiểm tra xem email đã tồn tại chưa (dùng khi đăng ký)
     boolean existsByEmail(String email);
 }

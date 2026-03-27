@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 @Builder
 public class AuthResponse {
-    private String token; // JWT Token để Next.js lưu vào LocalStorage/Cookie
+    private String token;
     private Long userId;
     private String username;
     private String email;

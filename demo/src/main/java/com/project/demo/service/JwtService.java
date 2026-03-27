@@ -70,9 +70,9 @@ public class JwtService {
 
         final Claims claims = Jwts
                 .parser()
-                .verifyWith(getSignInKey())   // thay cho setSigningKey
+                .verifyWith(getSignInKey())
                 .build()
-                .parseSignedClaims(token)     // thay cho parseClaimsJws
+                .parseSignedClaims(token)
                 .getPayload();
 
         return claimsResolver.apply(claims);

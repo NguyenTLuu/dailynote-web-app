@@ -34,38 +34,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final Long userId;
 
-        // Nếu không có token hoặc không bắt đầu bằng "Bearer ", cho qua (để SecurityConfig bắt lỗi sau)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7); // Cắt bỏ chữ "Bearer "
+        jwt = authHeader.substring(7);
 
         try {
-            userId = jwtService.extractUserId(jwt); // Lấy userId ra từ token
+            userId = jwtService.extractUserId(jwt);
 
-            // Nếu có userId và chưa được xác thực trong context hiện tại
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 if (jwtService.isTokenValid(jwt)) {
-                    // Lấy role từ token ra
                     String role = jwtService.extractRole(jwt);
 
-                    // Gắn mác "ROLE_ADMIN" hoặc "ROLE_USER" theo chuẩn của Spring
                     var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userId,
                             null,
-                            authorities // Đưa danh sách quyền vào đây thay vì new ArrayList<>()
+                            authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
         } catch (Exception e) {
-            // Token hết hạn hoặc sai định dạng
         }
 
         filterChain.doFilter(request, response);

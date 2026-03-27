@@ -16,18 +16,14 @@ import java.util.Map;
 @Service
 public class AiAdviceService {
 
-    // Lấy API Key từ file application.properties
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    // Anh shipper chuyên giao nhận HTTP request
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // Địa chỉ nhà của Gemini (Thêm thuộc tính -latest để giải quyết lỗi 404 versioning)
     private final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=";
     public String generateAdvice(int rate, String noteText, List<String> tagNames) {
 
-        // 1. Viết "tâm thư" (Prompt) chỉ đạo AI
         String prompt = String.format(
                 "Bạn là một chuyên gia tâm lý thấu hiểu và thân thiện. " +
                         "Hôm nay người dùng chấm điểm ngày của họ là %d/5. " +
@@ -37,8 +33,6 @@ public class AiAdviceService {
                 rate, String.join(", ", tagNames), noteText
         );
 
-        // 2. Gói thư vào "Phong bì" JSON theo đúng quy chuẩn khắt khe của Google
-        // Cấu trúc yêu cầu: {"contents": [{"parts": [{"text": "Nội dung prompt"}]}]}
         Map<String, Object> part = new HashMap<>();
         part.put("text", prompt);
 
@@ -54,12 +48,9 @@ public class AiAdviceService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
         try {
-            // 3. Giao cho shipper chở đi và đợi phản hồi
             String url = GEMINI_API_URL + apiKey;
             String responseStr = restTemplate.postForObject(url, request, String.class);
 
-            // 4. Mở hộp quà búp bê Nga (Parse JSON)
-            // Kết quả Google trả về lồng ghép rất nhiều tầng, ta phải bóc từng lớp để lấy đúng cái "text" ở trong cùng
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(responseStr);
 
@@ -68,7 +59,6 @@ public class AiAdviceService {
                     .path("text").asText().trim();
 
         } catch (org.springframework.web.client.HttpStatusCodeException e) {
-            // Lỗi 4xx, 5xx từ API (Sai API Key, Hết quota, ...)
             System.err.println("=== LỖI TỪ GEMINI API ===");
             System.err.println("Status: " + e.getStatusCode());
             System.err.println("Chi tiết: " + e.getResponseBodyAsString());

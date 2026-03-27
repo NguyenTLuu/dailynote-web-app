@@ -10,6 +10,6 @@ public class ApplicationConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Thuật toán băm mật khẩu chuẩn hiện nay
+        return new BCryptPasswordEncoder();
     }
 }

@@ -38,7 +38,6 @@ public class DailyNoteServiceImpl implements DailyNoteService {
     @Override
     @Transactional
     public DailyNoteResponse createNote(Long userId, DailyNoteRequest request) {
-        // 1. Kiểm tra xem ngày này đã viết nhật ký chưa
         if (dailyNoteRepository.existsByUserIdAndRecordDate(userId, request.getRecordDate())) {
             throw new IllegalArgumentException("Bạn đã viết nhật ký cho ngày này rồi!");
         }
@@ -46,32 +45,24 @@ public class DailyNoteServiceImpl implements DailyNoteService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User không tồn tại"));
 
-        // 2. Map từ Request sang Entity
         DailyNote note = dailyNoteMapper.toEntity(request);
         note.setUser(user);
 
-        // 3. Lấy danh sách Tag từ Database dựa trên list ID gửi lên
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
             List<Tag> tags = tagRepository.findAllById(request.getTagIds());
             note.setTags(new HashSet<>(tags));
         }
 
-        // 4. Lưu vào Database lần 1 (để có ID)
         DailyNote savedNote = dailyNoteRepository.save(note);
 
-        // 5. Xin lời khuyên từ Gemini và tự lưu vào DB
         if (request.getNoteText() != null && !request.getNoteText().isEmpty()) {
 
-            // Lôi tên các Tag ra (VD: "Trời mưa", "Buồn bã") để ghim vào phong bì gửi cho Gemini
             List<String> tagNames = savedNote.getTags().stream()
                     .map(Tag::getName)
                     .collect(Collectors.toList());
 
-            // Nhận kết quả từ chuyên gia (Trả về một chuỗi String)
             String advice = aiAdviceService.generateAdvice(request.getRate(), request.getNoteText(), tagNames);
 
-            // Tự tay nhét lời khuyên đó vào entity và update DB lần 2
-            // LƯU Ý: Nếu trong file DailyNote.java bạn đặt tên trường khác thì hãy đổi chữ setAiAdvice cho khớp nhé!
             savedNote.setAiAdvice(advice);
             dailyNoteRepository.save(savedNote);
         }
@@ -85,17 +76,14 @@ public class DailyNoteServiceImpl implements DailyNoteService {
         DailyNote note = dailyNoteRepository.findByIdAndUserId(noteId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhật ký"));
 
-        // Cập nhật các trường
         note.setRate(request.getRate());
         note.setNoteText(request.getNoteText());
 
-        // Cập nhật Tags nếu có thay đổi
         if (request.getTagIds() != null) {
             List<Tag> newTags = tagRepository.findAllById(request.getTagIds());
             note.setTags(new HashSet<>(newTags));
         }
 
-        // Xin lời khuyên tự động mới từ Gemini mỗi khi cập nhật lại Ghi chú
         if (request.getNoteText() != null && !request.getNoteText().isEmpty()) {
             List<String> tagNames = note.getTags().stream()
                     .map(Tag::getName)
@@ -124,14 +112,12 @@ public class DailyNoteServiceImpl implements DailyNoteService {
 
         List<DailyNote> notes = dailyNoteRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(userId, startDate, endDate);
 
-        // Chuyển đổi Entity sang CalendarNoteResponse bằng Java Stream
         return notes.stream().map(note -> {
             CalendarNoteResponse res = new CalendarNoteResponse();
             res.setId(note.getId());
             res.setRecordDate(note.getRecordDate());
             res.setRate(note.getRate());
 
-            // Lấy danh sách Emoji từ các Tag
             List<String> emojis = note.getTags().stream()
                     .map(Tag::getEmoji)
                     .collect(Collectors.toList());
@@ -150,10 +136,8 @@ public class DailyNoteServiceImpl implements DailyNoteService {
         Integer totalNotes = dailyNoteRepository.countNotesByDateRange(userId, startDate, endDate);
         Double averageRate = dailyNoteRepository.getAverageRateByDateRange(userId, startDate, endDate);
 
-        // Lấy danh sách notes để đếm các Tag dùng cho biểu đồ Pie Chart
         List<DailyNote> notes = dailyNoteRepository.findByUserIdAndRecordDateBetweenOrderByRecordDateAsc(userId, startDate, endDate);
 
-        // Nhóm và đếm số lượng mỗi tag name xuất hiện trong tháng
         Map<String, Long> tagCounts = notes.stream()
                 .flatMap(note -> note.getTags().stream())
                 .collect(Collectors.groupingBy(Tag::getName, Collectors.counting()));
